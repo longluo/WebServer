@@ -12,11 +12,14 @@
 #include <sys/socket.h>
 
 
-#define PORT 8080
+#define PORT 8888
+#define BUFFER_SIZE 1024
 
 
 int main(int argc, const char *argv[]) {
-	// Create a socket
+    char buffer[BUFFER_SIZE];
+
+    // Create a socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         perror("webserver (socket)");
@@ -45,6 +48,26 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
     printf("server listening for connections\n");
+
+    for (;;) {
+        // Accept incoming connections
+        int newsockfd = accept(sockfd, (struct sockaddr *)&host_addr,
+                               (socklen_t *)&host_addrlen);
+        if (newsockfd < 0) {
+            perror("webserver (accept)");
+            continue;
+        }
+        printf("connection accepted\n");
+
+        // Read from the socket
+        int valread = read(newsockfd, buffer, BUFFER_SIZE);
+        if (valread < 0) {
+            perror("webserver (read)");
+            continue;
+        }
+
+        close(newsockfd);
+    }
 
 	return 0;
 }
